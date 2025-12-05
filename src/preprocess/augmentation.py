@@ -24,7 +24,7 @@ augmentation_seq = A.Compose([
 A.Rotate(limit=35, p=1),
 A.HorizontalFlip(p=0.5),
 A.RandomBrightnessContrast( brightness_limit=0.25,contrast_limit=0.1,p=1),
-#A.GaussNoise( p=0.025),
+A.GaussNoise( p=0.025),
 A.OneOf([
         A.RandomScale(scale_limit=(-0.2, 0.2), p=1),
         A.RandomCrop(height=200, width=200, p=1), ], p=1),
