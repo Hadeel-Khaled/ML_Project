@@ -5,14 +5,13 @@ import cv2
 import numpy as np
 from src.features.extract_features import feature_vector
 
-
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = BASE_DIR
 
 # Target data directory (ML_Project/data/augmented)
 AUGMENTED_PATH = os.path.join(PROJECT_ROOT, "data", "augmented")
 
-# Output directory for saving features
+# Output directory for saving features and labels
 OUTPUT_DIR = os.path.join(PROJECT_ROOT, 'data', 'processed_features')
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
@@ -25,10 +24,10 @@ Y_TRAIN_FILE = os.path.join(OUTPUT_DIR, 'Y_train.pkl')
 X_TEST_FILE = os.path.join(OUTPUT_DIR, 'X_test.pkl')
 Y_TEST_FILE = os.path.join(OUTPUT_DIR, 'Y_test.pkl')
 
-all_features = [] # (X)
-all_labels = []   # (Y)
-label_map = {}    # Dictionary to map class names to numerical IDs 
-current_label_id = 1
+all_features = [] # (X) - List to store feature vectors
+all_labels = []   # (Y) - List to store corresponding labels (IDs)
+label_map = {}    # Dictionary to map class names to numerical IDs (e.g., 'cat': 0)
+current_label_id = 0
 
 print(f"--- Starting image processing from: {AUGMENTED_PATH} ---")
 
