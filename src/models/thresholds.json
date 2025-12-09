@@ -1,1 +1,6 @@
-{}
+{
+    "svm_threshold": 9977.031711280362,
+    "knn_threshold": 292.82642666907503,
+    "svm_percentile": 5,
+    "knn_percentile": 95
+}
