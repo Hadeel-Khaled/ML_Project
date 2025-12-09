@@ -20,18 +20,20 @@ def create_output_dirs():
 
 
 
-augmentation_seq = A.Compose([
-A.Rotate(limit=35, p=1),
-A.HorizontalFlip(p=0.5),
-A.RandomBrightnessContrast( brightness_limit=0.25,contrast_limit=0.1,p=1),
-A.GaussNoise( p=0.025),
-A.OneOf([
-        A.RandomScale(scale_limit=(-0.2, 0.2), p=1),
-        A.RandomCrop(height=200, width=200, p=1), ], p=1),
-
-
-    A.Resize(height=224, width=224, p=1)
+augmentation_seq =A.Compose([
+    A.HorizontalFlip(p=0.5),
+    A.Rotate(limit=10, p=0.3),
+    A.RandomBrightnessContrast(
+        brightness_limit=0.10,
+        contrast_limit=0.10,
+        p=0.3
+    ),
+    A.GaussNoise(var_limit=(10.0,50.0), p=0.1),
+    A.GaussianBlur(blur_limit=(3, 5), p=0.1),
+    A.RandomGamma(gamma_limit=(90, 110), p=0.2),
+    A.Resize(224, 224)
 ])
+
 
 
 def augment_image(img):
