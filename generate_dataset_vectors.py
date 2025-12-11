@@ -3,7 +3,10 @@ import os
 import pickle
 import cv2
 import numpy as np
-from src.features.extract_features import feature_vector
+
+
+
+from src.features.extract_features import extract_feature
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = BASE_DIR
@@ -59,7 +62,8 @@ for class_name in os.listdir(AUGMENTED_PATH):
                 img = cv2.imread(image_path)
                 
                 # 2. Extract features (Calling the function)
-                features = feature_vector(img)
+                features = extract_feature(img)
+
                 
                 # 3. Store results if extraction was successful
                 if features is not None:

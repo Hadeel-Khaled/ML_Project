@@ -13,7 +13,7 @@ import os
 # -----------------------------
 
 
-CURRENT_DIR = os.path.dirname(os.path.abspath(_file_))
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(CURRENT_DIR))
 
@@ -55,6 +55,7 @@ WEIGHTS = "distance"  # or "uniform"
 knn = KNeighborsClassifier(
     n_neighbors=K,
     weights=WEIGHTS,
+    metric="manhattan"
 )
 
 knn.fit(X_train_s, y_train)

@@ -8,7 +8,7 @@ import os
 # -----------------------------
 # Paths
 # -----------------------------
-CURRENT_DIR = os.path.dirname(os.path.abspath(_file_))
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(os.path.dirname(CURRENT_DIR))
 FEATURES_ROOT = os.path.join(PROJECT_ROOT, 'data', 'processed_features')
 
