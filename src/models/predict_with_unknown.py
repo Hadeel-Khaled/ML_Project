@@ -3,7 +3,7 @@ import numpy as np
 import joblib
 import os
 import json
-from src.features.extract_features import feature_vector
+from src.features.extract_features import extract_feature
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(os.path.dirname(CURRENT_DIR))
@@ -39,9 +39,9 @@ def predict_with_unknown(img_path):
         print("Error loading image:", img_path)
         return "Invalid"
 
-    img_resized = cv2.resize(img, (224, 224))
 
-    vector = feature_vector(img_resized).reshape(1, -1)
+
+    vector = extract_feature(img).reshape(1, -1)
 
 
     vec_svm = svm_scaler.transform(vector)
@@ -52,17 +52,18 @@ def predict_with_unknown(img_path):
     else:
         svm_margin = abs(svm_scores[0])
 
-    svm_known = svm_margin > (svm_threshold*1.1)
+    svm_known = svm_margin > svm_threshold
 
     vec_knn = knn_scaler.transform(vector)
     dists, _ = knn_model.kneighbors(vec_knn, n_neighbors=1)
     knn_dist = dists[0][0]
 
-    knn_known = knn_dist < (knn_threshold*0.9)
+    knn_known = knn_dist < knn_threshold
 
     if not (svm_known and knn_known):
         return "Unknown"
 
     final_class_id = svm_model.predict(vec_svm)[0]
     return final_class_id
+
 
