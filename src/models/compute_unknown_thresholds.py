@@ -20,7 +20,7 @@ X_val = pickle.load(open(os.path.join(VAL_DIR, "X_test.pkl"), "rb"))
 y_val = pickle.load(open(os.path.join(VAL_DIR, "Y_test.pkl"), "rb"))
 
 
-MODEL_DIR = os.path.join(PROJECT_ROOT, 'src', 'models')
+MODEL_DIR = os.path.join(PROJECT_ROOT)
 
 
 print(f"[INFO] Loaded validation set (using test set): {X_val.shape} samples")

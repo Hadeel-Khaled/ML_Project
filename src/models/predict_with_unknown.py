@@ -3,13 +3,17 @@ import numpy as np
 import joblib
 import os
 import json
-from src.features.extract_features import extract_feature
-
+import sys
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(os.path.dirname(CURRENT_DIR))
-MODEL_DIR = os.path.join(PROJECT_ROOT, "src", "models")
+sys.path.append(PROJECT_ROOT)
+from src.features.extract_features import extract_feature
 
+MODEL_DIR = PROJECT_ROOT
 
+# -------------------------------------------------
+# Load models & thresholds
+# -------------------------------------------------
 try:
     svm_model = joblib.load(os.path.join(MODEL_DIR, "svm_model_fast.pkl"))
     svm_scaler = joblib.load(os.path.join(MODEL_DIR, "svm_scaler.pkl"))
@@ -30,40 +34,45 @@ print("[INFO] Thresholds loaded:")
 print("  SVM threshold =", svm_threshold)
 print("  KNN threshold =", knn_threshold)
 
+# -------------------------------------------------
+# Predict with Unknown (IMPROVED)
+# -------------------------------------------------
+def predict_with_unknown_frame(frame, debug=False):
 
+    vector = extract_feature(frame).reshape(1, -1)
 
-def predict_with_unknown(img_path):
-
-    img = cv2.imread(img_path)
-    if img is None:
-        print("Error loading image:", img_path)
-        return "Invalid"
-
-
-
-    vector = extract_feature(img).reshape(1, -1)
-
-
+    # ========== SVM ==========
     vec_svm = svm_scaler.transform(vector)
     svm_scores = svm_model.decision_function(vec_svm)
 
-    if len(svm_scores.shape) > 1:
+    # margin
+    if svm_scores.ndim > 1:
         svm_margin = np.max(np.abs(svm_scores))
     else:
         svm_margin = abs(svm_scores[0])
 
-    svm_known = svm_margin > svm_threshold
+    # normalize margin (important)
+    svm_margin_norm = svm_margin / (svm_margin + 1e-6)
+    svm_known = svm_margin_norm > svm_threshold
 
+    # ========== KNN ==========
     vec_knn = knn_scaler.transform(vector)
     dists, _ = knn_model.kneighbors(vec_knn, n_neighbors=1)
     knn_dist = dists[0][0]
-
     knn_known = knn_dist < knn_threshold
 
-    if not (svm_known and knn_known):
-        return "Unknown"
+    # ========== Debug ==========
+    if debug:
+        print(f"SVM margin: {svm_margin:.4f} | norm: {svm_margin_norm:.4f}")
+        print(f"KNN dist: {knn_dist:.4f}")
+        print(f"SVM known: {svm_known} | KNN known: {knn_known}")
 
-    final_class_id = svm_model.predict(vec_svm)[0]
-    return final_class_id
+    # ========== Unknown decision (LESS STRICT) ==========
+    if not (svm_known or knn_known):
+        return "Unknown", 0.0
 
+    # ========== Final prediction ==========
+    class_id = svm_model.predict(vec_svm)[0]
+    confidence = svm_margin_norm
 
+    return class_id, confidence
