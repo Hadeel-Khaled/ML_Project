@@ -1,38 +1,56 @@
 import cv2
 import numpy as np
-from tensorflow.keras.applications.vgg16 import VGG16, preprocess_input
-from tensorflow.keras.preprocessing.image import img_to_array
+import tensorflow as tf
+from tensorflow.keras.applications import ResNet50
+from tensorflow.keras.applications.resnet50 import preprocess_input
 from tensorflow.keras.models import Model
+from tensorflow.keras.layers import GlobalAveragePooling2D
 
-# ---------------------------------------------
-# Load pretrained CNN (VGG16) without top layers
-# ---------------------------------------------
-base_model = VGG16(weights="imagenet", include_top=False)
-model = Model(inputs=base_model.input, outputs=base_model.layers[-1].output)
+# -------------------------------------------------
+# Load ResNet50 pretrained model (feature extractor)
+# -------------------------------------------------
+base_model = ResNet50(
+    weights="imagenet",
+    include_top=False,
+    input_shape=(224, 224, 3)
+)
 
-# ---------------------------------------------
+x = base_model.output
+x = GlobalAveragePooling2D()(x)    
+model = Model(inputs=base_model.input, outputs=x)
+
+# Freeze CNN weights
+for layer in model.layers:
+    layer.trainable = False
+
+print("✅ ResNet50 feature extractor loaded (2048 features)")
+
+# -------------------------------------------------
 # Feature extraction function
-# ---------------------------------------------
+# -------------------------------------------------
 def extract_feature(img):
-    # Convert BGR → RGB
-    img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    """
+    Extract CNN features from a single image
+    Output: 1D numpy vector (2048,)
+    """
 
-    # Resize to VGG expected size
-    img_resized = cv2.resize(img_rgb, (224, 224))
+    # BGR → RGB
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
+    # Resize
+    img = cv2.resize(img, (224, 224))
 
     # Convert to array
-    img_arr = img_to_array(img_resized)
+    img = np.array(img, dtype=np.float32)
 
     # Expand dims → (1, 224, 224, 3)
-    img_arr = np.expand_dims(img_arr, axis=0)
+    img = np.expand_dims(img, axis=0)
 
-    # Preprocess for VGG
-    img_arr = preprocess_input(img_arr)
+    # Preprocess for ResNet50
+    img = preprocess_input(img)
 
-    # Extract CNN features
-    features = model.predict(img_arr)
+    # Extract features
+    features = model.predict(img, verbose=0)
 
-    # Flatten to 1D vector for SVM/KNN
-    features = features.flatten()
-
-    return features
+    # Flatten → (2048,)
+    return features.flatten()

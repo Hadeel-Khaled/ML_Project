@@ -35,44 +35,44 @@ print("  SVM threshold =", svm_threshold)
 print("  KNN threshold =", knn_threshold)
 
 # -------------------------------------------------
-# Predict with Unknown (IMPROVED)
-# -------------------------------------------------
 def predict_with_unknown_frame(frame, debug=False):
 
+    # -------- Feature Extraction --------
     vector = extract_feature(frame).reshape(1, -1)
 
-    # ========== SVM ==========
+    # ================= SVM =================
     vec_svm = svm_scaler.transform(vector)
     svm_scores = svm_model.decision_function(vec_svm)
 
-    # margin
     if svm_scores.ndim > 1:
         svm_margin = np.max(np.abs(svm_scores))
     else:
         svm_margin = abs(svm_scores[0])
 
-    # normalize margin (important)
-    svm_margin_norm = svm_margin / (svm_margin + 1e-6)
-    svm_known = svm_margin_norm > svm_threshold
+    # Sigmoid confidence
+    svm_confidence = 1 / (1 + np.exp(-svm_margin))
+    svm_known = svm_confidence > svm_threshold
 
-    # ========== KNN ==========
+    svm_pred = svm_model.predict(vec_svm)[0]
+
+    # ================= KNN =================
     vec_knn = knn_scaler.transform(vector)
     dists, _ = knn_model.kneighbors(vec_knn, n_neighbors=1)
     knn_dist = dists[0][0]
     knn_known = knn_dist < knn_threshold
 
-    # ========== Debug ==========
+    # ================= Debug =================
     if debug:
-        print(f"SVM margin: {svm_margin:.4f} | norm: {svm_margin_norm:.4f}")
-        print(f"KNN dist: {knn_dist:.4f}")
+        print(f"SVM pred: {svm_pred}")
+        print(f"SVM margin: {svm_margin:.3f}")
+        print(f"SVM confidence: {svm_confidence:.3f}")
+        print(f"KNN dist: {knn_dist:.3f}")
         print(f"SVM known: {svm_known} | KNN known: {knn_known}")
 
-    # ========== Unknown decision (LESS STRICT) ==========
+    # ================= Decision =================
+    # Unknown only if BOTH reject
     if not (svm_known or knn_known):
-        return "Unknown", 0.0
+        return "Unknown", svm_confidence
 
-    # ========== Final prediction ==========
-    class_id = svm_model.predict(vec_svm)[0]
-    confidence = svm_margin_norm
-
-    return class_id, confidence
+    # Otherwise trust SVM
+    return svm_pred, svm_confidence
