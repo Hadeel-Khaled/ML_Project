@@ -51,7 +51,7 @@ def predict_with_unknown_frame(frame, debug=False):
 
     # Sigmoid confidence
     svm_confidence = 1 / (1 + np.exp(-svm_margin))
-    svm_known = svm_confidence > svm_threshold
+    svm_known = svm_margin > svm_threshold
 
     svm_pred = svm_model.predict(vec_svm)[0]
 

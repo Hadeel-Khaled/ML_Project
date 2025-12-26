@@ -110,8 +110,7 @@ def predict(dataFilePath, bestModelPath):
         else:
             svm_margin = abs(svm_scores[0])
 
-        svm_conf = 1 / (1 + np.exp(-svm_margin))
-        svm_known = svm_conf > svm_threshold
+        svm_known = svm_margin > svm_threshold
         svm_pred = svm_model.predict(vec_svm)[0]
 
         # ---------- KNN ----------
@@ -135,7 +134,7 @@ def predict(dataFilePath, bestModelPath):
     return predictions
 
 if __name__ == "__main__":
-    test_folder = "test"          
+    test_folder = "test"
     model_path = "svm_model_fast.pkl"    
 
     results = predict(test_folder, model_path)
